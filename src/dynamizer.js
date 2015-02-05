@@ -17,22 +17,12 @@ function Dynamizer(options) {
 /**
  * encode
  *
- * takes an object and mutates it to an Item representation
- * @param o - object to encode
- */
-Dynamizer.prototype.encode = function(o) {
-  return this._encode(o);
-};
-
-/**
- * _encode
- *
  * helper to encode objects
  * @param o
  * @returns {*}
  * @private
  */
-Dynamizer.prototype._encode = function(o) {
+Dynamizer.prototype.encode = function(o) {
   var ret;
   if (o === null) { // null
     ret = this._null_encode(o);
@@ -150,42 +140,6 @@ Dynamizer.prototype._map_encode = function(o) {
       }
     }
   return r;
-};
-
-
-/**
- * decode
- *
- * takes in an Item (as described in dynamodb)
- *
- * @param o
- * @returns {*}
- */
-Dynamizer.prototype.decode = function(o) {
-  var ret, iterO;
-  if (o.BOOL || ("BOOL" in o && o.hasOwnProperty("BOOL"))) { // bool bould be falsey
-    ret = o.BOOL;
-  } else if (o.NULL) {
-    ret = null;
-  } else if (o.N) {
-    ret = parseFloat(o.N);
-  } else if (o.S) {
-    ret = o.S
-  } else if (iterO = o.L || (o.constructor === Array && o)) {
-    ret = [];
-    for (var i=0;i< iterO.length;++i) {
-      ret.push(this.decode(o.L[i]));
-    }
-  } else if (iterO = o.M || (o.constructor === Object && o)) {
-    ret = {};
-    for (var j in iterO) {
-      if (iterO.hasOwnProperty(j)) {
-        ret[j] = this.decode(iterO[j]);
-      }
-    }
-  }
-
-  return ret;
 };
 
 /**
