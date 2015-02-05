@@ -1,0 +1,15 @@
+{
+  "name": "dynamizer",
+  "author": "Michael Dreibelbis <mike@belbis.com>",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/belbis/dynamizer.git"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/nodeunit test"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.9.0"
+  }
+}
