@@ -1,7 +1,13 @@
 # dynamizer
-A mirror of boto's Dynamizer class for node.js
+A mirror of boto's Dynamizer class for node.js to encode/decode Items to normal javascript objects
 
-options
+Installation
+------------
+
+npm install dynamizer
+
+
+Options
 -------
 
 * nonBoolean -- Dynamizer -> NonBooleanDynamizer
