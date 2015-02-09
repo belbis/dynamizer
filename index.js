@@ -1,4 +1,6 @@
 /**
  * for use with npm
  */
-module.exports = require('./src/dynamizer');
+module.exports = process.env.DYNAMIZER_COV
+  ? require('./src-cov/dynamizer')
+  : require('./src/dynamizer');

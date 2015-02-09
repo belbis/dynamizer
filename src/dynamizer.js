@@ -1,3 +1,16 @@
+
+// npm imports
+var sets = require('item-set'),
+  Set = sets.Set,
+  NumberSet = sets.NumberSet,
+  StringSet = sets.StringSet,
+  BinarySet = sets.BinarySet;
+
+// local imports
+var errors = require(__dirname + "/errors"),
+  InvalidParametersError = errors.InvalidParametersError,
+  NotImplementedError = errors.NotImplementedError;
+
 /**
  * mirror of the boto Dynamizer class for node.js
 **/
@@ -7,8 +20,8 @@ function Dynamizer(options) {
   if (!(this instanceof Dynamizer)) return new Dynamizer(options);
 
   if (options) {
-    this.nonBoolean = options.nonBoolean || false; // maps boolean values to numeric
-
+    this.disableBoolean = options.disableBoolean || false; // maps boolean values to numeric
+    this.enableSets = options.enableSets || false;
     // unsure about this option as yet
     //this.lossyFloat = options.nonLossyFloat || false; // allows for lossy float values
   }
@@ -38,8 +51,10 @@ Dynamizer.prototype.encode = function(o) {
     ret = this._arr_encode(o);
   } else if (o.constructor === Object) { // map object
     ret = this._map_encode(o);
+  } else if (o instanceof Set) { // set
+    ret = this._set_encode(o);
   } else {
-    throw Error("Invalid object.");
+    throw new InvalidParametersError();
   }
 
   return ret
@@ -67,7 +82,7 @@ Dynamizer.prototype._bool_encode = function(o) {
  */
 Dynamizer.prototype._num_encode = function(n) {
  if (this.nonLossyFloat) {
-   throw Error("not implemented yet");
+   throw new NotImplementedError();
  }
   return {"N": ""+n};
 };
@@ -134,11 +149,44 @@ Dynamizer.prototype._arr_encode = function(arr) {
  */
 Dynamizer.prototype._map_encode = function(o) {
   var r = {M: {}};
-    for (var j in o) {
-      if (o.hasOwnProperty(j)) {
-        r.M[j] = this.encode(o[j])
-      }
+  for (var j in o) {
+    if (o.hasOwnProperty(j)) {
+      r.M[j] = this.encode(o[j])
     }
+  }
+  return r;
+};
+
+/**
+ * _set_encode
+ *
+ * helper to encode set objects
+ * @param o
+ * @private
+ */
+Dynamizer.prototype._set_encode = function(o) {
+  var r = {},
+    encoder,
+    self = this,
+    key,
+    retKey;
+  if (o.constructor === NumberSet) {
+    key = "N";
+    encoder = this._num_encode;
+  } else if (o.constructor === StringSet) {
+    key = "S";
+    encoder = this._str_encode;
+  } else if (o.constructor === BinarySet) {
+    key = "B";
+    encoder = this._bin_encode;
+  } else {
+    throw new InvalidParametersError();
+  }
+  retKey = this.enableSets ? key + "S" : "L";
+  r[retKey] = o.getArray().map(function(v) {
+    var encoded = encoder(v);
+    return self.enableSets ? encoded[key]: encoded;
+  });
   return r;
 };
 
@@ -163,14 +211,16 @@ Dynamizer.prototype.decode = function(o) {
     ret = this._num_decode(o);
   } else if (o.hasOwnProperty("B")) {
     ret = this._bin_decode(o);
+  } else if (o.hasOwnProperty("NS") || o.hasOwnProperty("SS") || o.hasOwnProperty("BS")) {
+    ret = this._set_decode(o);
   } else if (o.hasOwnProperty("L") || o.constructor === Array) { // array, or array obj
     o = o.L || o;
     ret = this._arr_decode(o);
   } else if (o.hasOwnProperty("M") || o.constructor === Object) { // map, or map obj
     o = o.M || o;
     ret = this._map_decode(o);
-  } else {
-    throw Error("Invalid object.");
+  }  else {
+    throw new InvalidParametersError();
   }
 
   return ret;
@@ -227,7 +277,7 @@ Dynamizer.prototype._str_decode = function(o) {
 /**
  * _bin_decode
  *
- * helper for bin decode
+ * helper for binary decode
  * @param o
  * @returns {B|*}
  * @private
@@ -266,6 +316,34 @@ Dynamizer.prototype._map_decode = function(o) {
     }
   }
   return r;
+};
+
+/**
+ * _set_decode
+ *
+ * decodes a set
+ * @param o
+ * @private
+ */
+Dynamizer.prototype._set_decode = function(o) {
+  var r,
+    arr;
+  if (o.NS) {
+    arr = o.NS.map(function(v) {return Number(v)});
+    r = new NumberSet(arr);
+  } else if (o.SS) {
+    r =  new StringSet(o.SS);
+  } else if (o.BS) {
+    var self = this;
+    arr = o.BS.map(function(v) {
+      return self._bin_decode({B: v}); // todo: change decode to values instead of types
+    });
+    r = new BinarySet(arr);
+  } else {
+    throw new InvalidParametersError();
+  }
+  // return appropriate type
+  return this.enableSets ? r : r.getArray();
 };
 
 // export module

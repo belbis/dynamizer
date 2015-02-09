@@ -1,15 +1,37 @@
 {
   "name": "dynamizer",
   "author": "Michael Dreibelbis <mike@belbis.com>",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/belbis/dynamizer.git"
   },
   "scripts": {
-    "test": "./node_modules/.bin/nodeunit test"
+    "test": "nodeunit test",
+    "coveralls": "jscoverage src && DYNAMIZER_COV=1 nodeunit --reporter=lcov test | coveralls"
   },
   "devDependencies": {
     "nodeunit": "~0.9.0"
-  }
+  },
+  "description": "A mirror of boto's Dynamizer class for node.js to encode/decode Items to normal javascript objects",
+  "bugs": {
+    "url": "https://github.com/belbis/dynamizer/issues"
+  },
+  "homepage": "https://github.com/belbis/dynamizer",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "nodeunit": "~0.9.0",
+    "item-set": "~0.0.3"
+  },
+  "keywords": [
+    "dynamodb",
+    "dynamizer",
+    "Item",
+    "encode",
+    "decode"
+  ],
+  "license": "MIT"
 }
