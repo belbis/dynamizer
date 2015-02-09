@@ -11,7 +11,9 @@
     "coveralls": "jscoverage src && DYNAMIZER_COV=1 nodeunit --reporter=lcov test | coveralls"
   },
   "devDependencies": {
-    "nodeunit": "~0.9.0"
+    "nodeunit": "~0.9.0",
+    "coveralls": "2.11.2",
+    "jscoverage": "0.5.9"
   },
   "description": "A mirror of boto's Dynamizer class for node.js to encode/decode Items to normal javascript objects",
   "bugs": {
