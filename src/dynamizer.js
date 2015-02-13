@@ -14,7 +14,6 @@ var errors = require(__dirname + "/errors"),
 /**
  * mirror of the boto Dynamizer class for node.js
 **/
-
 function Dynamizer(options) {
   // don"t enforce new
   if (!(this instanceof Dynamizer)) return new Dynamizer(options);
@@ -23,7 +22,7 @@ function Dynamizer(options) {
     this.disableBoolean = options.disableBoolean || false; // maps boolean values to numeric
     this.enableSets = options.enableSets || false;
     // unsure about this option as yet
-    //this.lossyFloat = options.nonLossyFloat || false; // allows for lossy float values
+    this.disableLossyFloat = options.disableLossyFloat || false;
   }
 }
 
@@ -33,7 +32,6 @@ function Dynamizer(options) {
  * helper to encode objects
  * @param o
  * @returns {*}
- * @private
  */
 Dynamizer.prototype.encode = function(o) {
   var ret;
@@ -67,7 +65,7 @@ Dynamizer.prototype.encode = function(o) {
  * @private
  */
 Dynamizer.prototype._bool_encode = function(o) {
-  if (this.nonBoolean) {
+  if (this.disableBoolean) {
     return {"N": 1 && o || 0};
   } else {
     return {"BOOL": o};
@@ -81,7 +79,7 @@ Dynamizer.prototype._bool_encode = function(o) {
  * @private
  */
 Dynamizer.prototype._num_encode = function(n) {
- if (this.nonLossyFloat) {
+ if (this.disableLossyFloat) {
    throw new NotImplementedError();
  }
   return {"N": ""+n};
@@ -196,7 +194,6 @@ Dynamizer.prototype._set_encode = function(o) {
  * implementation of decode
  * @param o
  * @returns {*}
- * @private
  */
 Dynamizer.prototype.decode = function(o) {
   var ret;
@@ -336,11 +333,9 @@ Dynamizer.prototype._set_decode = function(o) {
   } else if (o.BS) {
     var self = this;
     arr = o.BS.map(function(v) {
-      return self._bin_decode({B: v}); // todo: change decode to values instead of types
+      return self._bin_decode({B: v}); // todo: change decode to values instead of types?
     });
     r = new BinarySet(arr);
-  } else {
-    throw new InvalidParametersError();
   }
   // return appropriate type
   return this.enableSets ? r : r.getArray();
