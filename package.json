@@ -25,7 +25,6 @@
     "test": "test"
   },
   "dependencies": {
-    "nodeunit": "0.9.0",
     "item-set": "0.0.3"
   },
   "keywords": [
